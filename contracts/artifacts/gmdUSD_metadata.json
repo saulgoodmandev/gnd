@@ -297,6 +297,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "onlyArbitragor",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "owner",
 				"outputs": [
 					{
@@ -603,11 +616,11 @@
 			]
 		},
 		"contracts/gmdUSD.sol": {
-			"keccak256": "0x9b4a6e2c19bffec2bdba1e018624fa83f027a29592a676d1b44b2d4f14177816",
+			"keccak256": "0xd7af05d11d1625fe397e7e9b6a7fd6fd6c3cd9d28b04fc4f529cb92fdc7ea68b",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://9b0bd4905c986d0214f2e754c474b39238f0c9b127cefc5699d366526406c30e",
-				"dweb:/ipfs/QmRFkm5pxrUJdduQKufcoVmitDXKAUnSfw2EJ5oKuBXZB7"
+				"bzz-raw://6cc6e72c01a8f9bc7b06ca3db8240fa4af72f5c923cb67d216497255f50a45d6",
+				"dweb:/ipfs/QmVoDTmtFFK4dmzhh6ZgaDQ9miNc9h8qQ2bYQaHHcEBH7J"
 			]
 		}
 	},
