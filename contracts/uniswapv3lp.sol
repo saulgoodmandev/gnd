@@ -3,8 +3,7 @@ pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
-import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
-import '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol';
+import '../interfaces/INonfungiblePositionManager.sol';
 
 contract LiquidityExamples is IERC721Receiver {
     address public constant nonfungiblePositionManager = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
