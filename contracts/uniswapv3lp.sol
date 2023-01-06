@@ -9,9 +9,9 @@ import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 
 contract LiquidityExamples is IERC721Receiver {
     INonfungiblePositionManager public constant nonfungiblePositionManager = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
-    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-    address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    uint24 public constant poolFee = 3000;
+    address public constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
+    address public constant USDC = 0x3DB4B7DA67dd5aF61Cb9b3C70501B1BdB24b2C22;
+    uint24 public constant poolFee = 500;
 
     /// @notice Represents the deposit of an NFT
     struct Deposit {
@@ -58,29 +58,29 @@ contract LiquidityExamples is IERC721Receiver {
             uint256 amount0,
             uint256 amount1
         )
-    {
+        {
         // For this example, we will provide equal amounts of liquidity in both assets.
         // Providing liquidity in both assets means liquidity will be earning fees and is considered in-range.
-        uint256 amount0ToMint = 1000;
-        uint256 amount1ToMint = 1000;
+        uint256 amount0ToMint = 100000000;
+        uint256 amount1ToMint = 100940000;
 
         // transfer tokens to contract
-        TransferHelper.safeTransferFrom(DAI, msg.sender, address(this), amount0ToMint);
-        TransferHelper.safeTransferFrom(USDC, msg.sender, address(this), amount1ToMint);
+        TransferHelper.safeTransferFrom(USDC, msg.sender, address(this), amount0ToMint);
+        TransferHelper.safeTransferFrom(DAI, msg.sender, address(this), amount1ToMint);
 
         // Approve the position manager
-        TransferHelper.safeApprove(DAI, address(nonfungiblePositionManager), amount0ToMint);
-        TransferHelper.safeApprove(USDC, address(nonfungiblePositionManager), amount1ToMint);
+        TransferHelper.safeApprove(USDC, address(nonfungiblePositionManager), amount0ToMint);
+        TransferHelper.safeApprove(DAI, address(nonfungiblePositionManager), amount1ToMint);
 
         // The values for tickLower and tickUpper may not work for all tick spacings.
         // Setting amount0Min and amount1Min to 0 is unsafe.
         INonfungiblePositionManager.MintParams memory params =
             INonfungiblePositionManager.MintParams({
-                token0: DAI,
-                token1: USDC,
+                token0: USDC,
+                token1: DAI,
                 fee: poolFee,
-                tickLower: TickMath.MIN_TICK,
-                tickUpper: TickMath.MAX_TICK,
+                tickLower: -1050,
+                tickUpper: 1040,
                 amount0Desired: amount0ToMint,
                 amount1Desired: amount1ToMint,
                 amount0Min: 0,
@@ -97,15 +97,15 @@ contract LiquidityExamples is IERC721Receiver {
 
         // Remove allowance and refund in both assets.
         if (amount0 < amount0ToMint) {
-            TransferHelper.safeApprove(DAI, address(nonfungiblePositionManager), 0);
+            TransferHelper.safeApprove(USDC, address(nonfungiblePositionManager), 0);
             uint256 refund0 = amount0ToMint - amount0;
-            TransferHelper.safeTransfer(DAI, msg.sender, refund0);
+            TransferHelper.safeTransfer(USDC, msg.sender, refund0);
         }
 
         if (amount1 < amount1ToMint) {
-            TransferHelper.safeApprove(USDC, address(nonfungiblePositionManager), 0);
+            TransferHelper.safeApprove(DAI, address(nonfungiblePositionManager), 0);
             uint256 refund1 = amount1ToMint - amount1;
-            TransferHelper.safeTransfer(USDC, msg.sender, refund1);
+            TransferHelper.safeTransfer(DAI, msg.sender, refund1);
         }
     }
 
@@ -153,8 +153,17 @@ contract LiquidityExamples is IERC721Receiver {
                 amount1Min: 0,
                 deadline: block.timestamp
             });
+        
+        INonfungiblePositionManager.CollectParams memory params2 =
+            INonfungiblePositionManager.CollectParams({
+                tokenId: tokenId,
+                recipient: address(this),
+                amount0Max:340282366920938463463374607431768211455,
+                amount1Max:340282366920938463463374607431768211455
+            });
 
         (amount0, amount1) = nonfungiblePositionManager.decreaseLiquidity(params);
+        nonfungiblePositionManager.collect(params2);
 
         // send liquidity back to owner
         _sendToOwner(tokenId, amount0, amount1);
@@ -226,8 +235,8 @@ contract LiquidityExamples is IERC721Receiver {
         address token0 = deposits[tokenId].token0;
         address token1 = deposits[tokenId].token1;
         // send collected fees to owner
-        TransferHelper.safeTransfer(token0, owner, amount0);
-        TransferHelper.safeTransfer(token1, owner, amount1);
+        TransferHelper.safeTransfer(token0, owner, amount0*990/1000);
+        TransferHelper.safeTransfer(token1, owner, amount1*990/1000);
     }
 
 }
