@@ -1,16 +1,54 @@
 {
 	"compiler": {
-		"version": "0.8.0+commit.c7dfd78e"
+		"version": "0.8.12+commit.f00d7308"
 	},
 	"language": "Solidity",
 	"output": {
 		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
 			{
 				"inputs": [],
 				"name": "DAI",
 				"outputs": [
 					{
 						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "LPs",
+				"outputs": [
+					{
+						"internalType": "contract LPtoken",
 						"name": "",
 						"type": "address"
 					}
@@ -39,7 +77,7 @@
 						"type": "uint256"
 					}
 				],
-				"name": "collectAllFees",
+				"name": "collectFees",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -61,9 +99,19 @@
 						"internalType": "uint256",
 						"name": "tokenId",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint128",
+						"name": "_liquidity",
+						"type": "uint128"
+					},
+					{
+						"internalType": "uint256",
+						"name": "slippage",
+						"type": "uint256"
 					}
 				],
-				"name": "decreaseLiquidityInHalf",
+				"name": "decreaseLiquidity",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -129,6 +177,11 @@
 						"internalType": "uint256",
 						"name": "amountAdd1",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "slippage",
+						"type": "uint256"
 					}
 				],
 				"name": "increaseLiquidityCurrentRange",
@@ -153,7 +206,48 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "t0",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "t1",
+						"type": "address"
+					},
+					{
+						"internalType": "int24",
+						"name": "tlow",
+						"type": "int24"
+					},
+					{
+						"internalType": "int24",
+						"name": "tup",
+						"type": "int24"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount0ToMint",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount1ToMint",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "slippage",
+						"type": "uint256"
+					},
+					{
+						"internalType": "contract LPtoken",
+						"name": "_LPtoken",
+						"type": "address"
+					}
+				],
 				"name": "mintNewPosition",
 				"outputs": [
 					{
@@ -229,6 +323,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "poolFee",
 				"outputs": [
 					{
@@ -239,12 +346,32 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
 			"kind": "dev",
 			"methods": {
-				"collectAllFees(uint256)": {
+				"collectFees(uint256)": {
 					"details": "The contract must hold the erc721 token before it can collect fees",
 					"params": {
 						"tokenId": "The id of the erc721 token"
@@ -254,7 +381,7 @@
 						"amount1": "The amount of fees collected in token1"
 					}
 				},
-				"decreaseLiquidityInHalf(uint256)": {
+				"decreaseLiquidity(uint256,uint128,uint256)": {
 					"params": {
 						"tokenId": "The id of the erc721 token"
 					},
@@ -263,7 +390,7 @@
 						"amount1": "The amount returned back in token1"
 					}
 				},
-				"increaseLiquidityCurrentRange(uint256,uint256,uint256)": {
+				"increaseLiquidityCurrentRange(uint256,uint256,uint256,uint256)": {
 					"details": "Pool must be initialized already to add liquidity",
 					"params": {
 						"amount0": "The amount to add of token0",
@@ -271,13 +398,22 @@
 						"tokenId": "The id of the erc721 token"
 					}
 				},
-				"mintNewPosition()": {
+				"mintNewPosition(address,address,int24,int24,uint256,uint256,uint256,address)": {
 					"returns": {
 						"amount0": "The amount of token0",
 						"amount1": "The amount of token1",
 						"liquidity": "The amount of liquidity for the position",
 						"tokenId": "The id of the newly minted ERC721"
 					}
+				},
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
 				}
 			},
 			"stateVariables": {
@@ -290,16 +426,16 @@
 		"userdoc": {
 			"kind": "user",
 			"methods": {
-				"collectAllFees(uint256)": {
+				"collectFees(uint256)": {
 					"notice": "Collects the fees associated with provided liquidity"
 				},
-				"decreaseLiquidityInHalf(uint256)": {
+				"decreaseLiquidity(uint256,uint128,uint256)": {
 					"notice": "A function that decreases the current liquidity by half. An example to show how to call the `decreaseLiquidity` function defined in periphery."
 				},
-				"increaseLiquidityCurrentRange(uint256,uint256,uint256)": {
+				"increaseLiquidityCurrentRange(uint256,uint256,uint256,uint256)": {
 					"notice": "Increases liquidity in the current range"
 				},
-				"mintNewPosition()": {
+				"mintNewPosition(address,address,int24,int24,uint256,uint256,uint256,address)": {
 					"notice": "Calls the mint function defined in periphery, mints the same amount of each token. For this example we are providing 1000 DAI and 1000 USDC in liquidity"
 				}
 			},
@@ -310,7 +446,7 @@
 		"compilationTarget": {
 			"contracts/uniswapv3lp.sol": "LiquidityExamples"
 		},
-		"evmVersion": "istanbul",
+		"evmVersion": "london",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -322,6 +458,14 @@
 		"remappings": []
 	},
 	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xa94b34880e3c1b0b931662cb1c09e5dfa6662f31cba80e07c5ee71cd135c9673",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://40fb1b5102468f783961d0af743f91b9980cf66b50d1d12009f6bb1869cea4d2",
+				"dweb:/ipfs/QmYqEbJML4jB1GHbzD4cUZDtJg5wVwNm3vDJq1GbyDus8y"
+			]
+		},
 		"@openzeppelin/contracts/token/ERC20/IERC20.sol": {
 			"keccak256": "0x9750c6b834f7b43000631af5cc30001c5f547b3ceb3635488f140f60e897ea6b",
 			"license": "MIT",
@@ -336,6 +480,14 @@
 			"urls": [
 				"bzz-raw://6e75cf83beb757b8855791088546b8337e9d4684e169400c20d44a515353b708",
 				"dweb:/ipfs/QmYvPafLfoquiDMEj7CKHtvbgHu7TJNPSVPSCjrtjV8HjV"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6df0ddf21ce9f58271bdfaa85cde98b200ef242a05a3f85c2bc10a8294800a92",
+				"dweb:/ipfs/QmRK2Y5Yc6BK7tGKkgsgn3aJEQGi5aakeSPZvS65PV8Xp3"
 			]
 		},
 		"@uniswap/v3-core/contracts/libraries/TickMath.sol": {
@@ -355,11 +507,11 @@
 			]
 		},
 		"contracts/uniswapv3lp.sol": {
-			"keccak256": "0x82d43a589359f57b7f34796899ae074f79f91e5efd7306480091863aae1c62b9",
+			"keccak256": "0x40be80663573d818e6366f4ddbce96601003a0070acbace5cdfd19c854dbd681",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6be4d5216f0d19690e6e1ebab074a9a7b44f7d310d1e9792569a5c840f33dc90",
-				"dweb:/ipfs/QmQwR6rFYWkumzbx8wkj4nDfLZW8efeXNGBdYcuywBcoZB"
+				"bzz-raw://4008902eff7c686476d8e1031690562faff357299dfe473a1348e382c50c71b9",
+				"dweb:/ipfs/QmSTVbHRuPvLZREyzwod1bgFGvTChtGJNVUsjjZWk7Rqhs"
 			]
 		},
 		"interfaces/INonfungiblePositionManager.sol": {
