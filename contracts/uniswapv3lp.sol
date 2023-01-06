@@ -4,9 +4,11 @@ pragma abicoder v2;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 import '../interfaces/INonfungiblePositionManager.sol';
+import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
+import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 
 contract LiquidityExamples is IERC721Receiver {
-    address public constant nonfungiblePositionManager = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
+    INonfungiblePositionManager public constant nonfungiblePositionManager = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
     address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     uint24 public constant poolFee = 3000;
@@ -175,8 +177,8 @@ contract LiquidityExamples is IERC721Receiver {
             uint256 amount1
         )
     {
-        uint256 token0 = deposits[tokenId].token0;
-        uint256 token1 = deposits[tokenId].token1;
+        address token0 = deposits[tokenId].token0;
+        address token1 = deposits[tokenId].token1;
         TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amountAdd0);
         TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amountAdd1);
 
@@ -202,9 +204,9 @@ contract LiquidityExamples is IERC721Receiver {
             TransferHelper.safeTransfer(token0, msg.sender, refund0);
         }
 
-        if (amount1 < amount1ToMint) {
+        if (amount1 < amountAdd1) {
             TransferHelper.safeApprove(token1, address(nonfungiblePositionManager), 0);
-            uint256 refund1 = amount1ToMint - amount1;
+            uint256 refund1 = amountAdd1 - amount1;
             TransferHelper.safeTransfer(token1, msg.sender, refund1);
         }
     }
@@ -228,14 +230,4 @@ contract LiquidityExamples is IERC721Receiver {
         TransferHelper.safeTransfer(token1, owner, amount1);
     }
 
-    /// @notice Transfers the NFT to the owner
-    /// @param tokenId The id of the erc721
-    function retrieveNFT(uint256 tokenId) external {
-        // must be the owner of the NFT
-        require(msg.sender == deposits[tokenId].owner, 'Not the owner');
-        // remove information related to tokenId
-        delete deposits[tokenId];
-        // transfer ownership to original owner
-        nonfungiblePositionManager.safeTransferFrom(address(this), msg.sender, tokenId);
-    }
 }

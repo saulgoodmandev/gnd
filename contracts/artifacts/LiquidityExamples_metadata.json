@@ -1,0 +1,375 @@
+{
+	"compiler": {
+		"version": "0.8.0+commit.c7dfd78e"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "DAI",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "USDC",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "collectAllFees",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount0",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount1",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "decreaseLiquidityInHalf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount0",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount1",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "deposits",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint128",
+						"name": "liquidity",
+						"type": "uint128"
+					},
+					{
+						"internalType": "address",
+						"name": "token0",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "token1",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amountAdd0",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amountAdd1",
+						"type": "uint256"
+					}
+				],
+				"name": "increaseLiquidityCurrentRange",
+				"outputs": [
+					{
+						"internalType": "uint128",
+						"name": "liquidity",
+						"type": "uint128"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount0",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount1",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "mintNewPosition",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint128",
+						"name": "liquidity",
+						"type": "uint128"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount0",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount1",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "nonfungiblePositionManager",
+				"outputs": [
+					{
+						"internalType": "contract INonfungiblePositionManager",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"name": "onERC721Received",
+				"outputs": [
+					{
+						"internalType": "bytes4",
+						"name": "",
+						"type": "bytes4"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "poolFee",
+				"outputs": [
+					{
+						"internalType": "uint24",
+						"name": "",
+						"type": "uint24"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"collectAllFees(uint256)": {
+					"details": "The contract must hold the erc721 token before it can collect fees",
+					"params": {
+						"tokenId": "The id of the erc721 token"
+					},
+					"returns": {
+						"amount0": "The amount of fees collected in token0",
+						"amount1": "The amount of fees collected in token1"
+					}
+				},
+				"decreaseLiquidityInHalf(uint256)": {
+					"params": {
+						"tokenId": "The id of the erc721 token"
+					},
+					"returns": {
+						"amount0": "The amount received back in token0",
+						"amount1": "The amount returned back in token1"
+					}
+				},
+				"increaseLiquidityCurrentRange(uint256,uint256,uint256)": {
+					"details": "Pool must be initialized already to add liquidity",
+					"params": {
+						"amount0": "The amount to add of token0",
+						"amount1": "The amount to add of token1",
+						"tokenId": "The id of the erc721 token"
+					}
+				},
+				"mintNewPosition()": {
+					"returns": {
+						"amount0": "The amount of token0",
+						"amount1": "The amount of token1",
+						"liquidity": "The amount of liquidity for the position",
+						"tokenId": "The id of the newly minted ERC721"
+					}
+				}
+			},
+			"stateVariables": {
+				"deposits": {
+					"details": "deposits[tokenId] => Deposit"
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"collectAllFees(uint256)": {
+					"notice": "Collects the fees associated with provided liquidity"
+				},
+				"decreaseLiquidityInHalf(uint256)": {
+					"notice": "A function that decreases the current liquidity by half. An example to show how to call the `decreaseLiquidity` function defined in periphery."
+				},
+				"increaseLiquidityCurrentRange(uint256,uint256,uint256)": {
+					"notice": "Increases liquidity in the current range"
+				},
+				"mintNewPosition()": {
+					"notice": "Calls the mint function defined in periphery, mints the same amount of each token. For this example we are providing 1000 DAI and 1000 USDC in liquidity"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/uniswapv3lp.sol": "LiquidityExamples"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+			"keccak256": "0x9750c6b834f7b43000631af5cc30001c5f547b3ceb3635488f140f60e897ea6b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5a7d5b1ef5d8d5889ad2ed89d8619c09383b80b72ab226e0fe7bde1636481e34",
+				"dweb:/ipfs/QmebXWgtEfumQGBdVeM6c71McLixYXQP5Bk6kKXuoY4Bmr"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
+			"keccak256": "0xa82b58eca1ee256be466e536706850163d2ec7821945abd6b4778cfb3bee37da",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6e75cf83beb757b8855791088546b8337e9d4684e169400c20d44a515353b708",
+				"dweb:/ipfs/QmYvPafLfoquiDMEj7CKHtvbgHu7TJNPSVPSCjrtjV8HjV"
+			]
+		},
+		"@uniswap/v3-core/contracts/libraries/TickMath.sol": {
+			"keccak256": "0xe2bb2ec5150e6007beecb75ce88e7a03458b8d01aa968ec265093cdb6d8d3af7",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://42068b48f0f59086bd90db67b51ab3e70ab4701e9e0602a9f048031e4f31831a",
+				"dweb:/ipfs/QmZEhUMidPVxfGzGrQ39tACokCmknPr3yfxDgh9hjuZpwE"
+			]
+		},
+		"@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol": {
+			"keccak256": "0x9af98b0908c96320ca6d08b22f0efca864742f6adbe5794cafe2d1d2e808b0cd",
+			"license": "GPL-2.0-or-later",
+			"urls": [
+				"bzz-raw://da1d1e81e5bf534f0bf2934b3193db6cb1933f91ec006d2b88e9ad10a617a2d2",
+				"dweb:/ipfs/QmcPBk47QLMFWcX2y2S9eMFsJgoYWBd3R8ey55Bgmv6w6v"
+			]
+		},
+		"contracts/uniswapv3lp.sol": {
+			"keccak256": "0x257168d6aa030ed317e74953d2744cbdb7db1aaea0c9bf629dd7ebdb021932ab",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c693273a61eb36b51f79370cc455aa02f3c774d34eb1e9dcbc3750c5afba06a8",
+				"dweb:/ipfs/QmWYtqX3yc8HJXD38SnHw848RNvcnmwRTaGGf2kjYS9NtF"
+			]
+		},
+		"interfaces/INonfungiblePositionManager.sol": {
+			"keccak256": "0x1472f97bbd815a116416bca5680e2c4bf57b0877cdd0aa0c77411bded6a2687c",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://072e1a5310dd384bbbbbce64e548d9970e5a31125ab105a7bea357a87ec568a9",
+				"dweb:/ipfs/QmcA1g874tP74FbL6TNZy7pAU4jbEVtkcwaZvLomRQwauL"
+			]
+		}
+	},
+	"version": 1
+}
