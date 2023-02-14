@@ -77,6 +77,17 @@ contract LiquidityExamples is IERC721Receiver,Ownable {
         )
         {
 
+         IUniswapV3Pool pool = IUniswapV3Pool(
+            PoolAddress.computeAddress(
+                nonfungiblePositionManager.factory(),
+                PoolAddress.PoolKey({
+                    token0: token0,
+                    token1: token1,
+                    fee: fee
+                })
+            )
+        );    
+
         // transfer tokens to contract
         TransferHelper.safeTransferFrom(t0, msg.sender, address(this), amount0ToMint);
         TransferHelper.safeTransferFrom(t1, msg.sender, address(this), amount1ToMint);
