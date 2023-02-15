@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-pragma abicoder v2;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -10,8 +9,11 @@ import './interfaces/INonfungiblePositionManager.sol';
 //  Check configured remappings..
 //     --> "/Users/user/dev/gnd/lib/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol"
 //         "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol"
+import '@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol';
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
+import '@uniswap/v3-periphery/contracts/interfaces/IPeripheryImmutableState.sol';
 import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
+import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
@@ -82,16 +84,16 @@ contract LiquidityExamples is IERC721Receiver,Ownable {
         )
         {
 
-        //  IUniswapV3Pool pool = IUniswapV3Pool(
-        //     PoolAddress.computeAddress(
-        //         nonfungiblePositionManager.factory(),
-        //         PoolAddress.PoolKey({
-        //             token0: token0,
-        //             token1: token1,
-        //             fee: fee
-        //         })
-        //     )
-        // );    
+         IUniswapV3Pool pool = IUniswapV3Pool(
+            PoolAddress.computeAddress(
+                IPeripheryImmutableState(address(nonfungiblePositionManager)).factory(),
+                PoolAddress.PoolKey({
+                    token0: t0,
+                    token1: t1,
+                    fee: poolFee
+                })
+            )
+        );    
 
         // (lpShares, amount0, amount1) = pool.computeLpShares(
         //     true,
