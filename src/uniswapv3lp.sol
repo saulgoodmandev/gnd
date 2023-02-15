@@ -4,7 +4,12 @@ pragma abicoder v2;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import '../interfaces/INonfungiblePositionManager.sol';
+import './interfaces/INonfungiblePositionManager.sol'; 
+// import '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol';  WTF why doesn't this compile?  
+// Failed to resolve file: "/Users/user/dev/gnd/lib/openzeppelin-contracts/token/ERC721/IERC721Metadata.sol": No such file or directory (os error 2).
+//  Check configured remappings..
+//     --> "/Users/user/dev/gnd/lib/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol"
+//         "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol"
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -77,16 +82,27 @@ contract LiquidityExamples is IERC721Receiver,Ownable {
         )
         {
 
-         IUniswapV3Pool pool = IUniswapV3Pool(
-            PoolAddress.computeAddress(
-                nonfungiblePositionManager.factory(),
-                PoolAddress.PoolKey({
-                    token0: token0,
-                    token1: token1,
-                    fee: fee
-                })
-            )
-        );    
+        //  IUniswapV3Pool pool = IUniswapV3Pool(
+        //     PoolAddress.computeAddress(
+        //         nonfungiblePositionManager.factory(),
+        //         PoolAddress.PoolKey({
+        //             token0: token0,
+        //             token1: token1,
+        //             fee: fee
+        //         })
+        //     )
+        // );    
+
+        // (lpShares, amount0, amount1) = pool.computeLpShares(
+        //     true,
+        //     amount0Desired,
+        //     amount1Desired,
+        //     _balance0(),
+        //     _balance1(),
+        //     totalSupply,
+        //     ticksData
+        // );
+
 
         // transfer tokens to contract
         TransferHelper.safeTransferFrom(t0, msg.sender, address(this), amount0ToMint);
