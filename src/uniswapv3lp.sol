@@ -15,7 +15,7 @@ import '@uniswap/v3-periphery/contracts/interfaces/IPeripheryImmutableState.sol'
 import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
-
+import "@unipilot-v2/libraries/UniswapLiquidityManagement.sol";
 
 interface LPtoken is IERC20 {
     function mint(address recipient, uint256 _amount) external;
@@ -23,6 +23,7 @@ interface LPtoken is IERC20 {
 }
 
 contract LiquidityExamples is IERC721Receiver,Ownable {
+        using UniswapLiquidityManagement for IUniswapV3Pool;
     INonfungiblePositionManager public constant nonfungiblePositionManager = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
     address public constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
     address public constant USDC = 0x3DB4B7DA67dd5aF61Cb9b3C70501B1BdB24b2C22;
@@ -74,7 +75,8 @@ contract LiquidityExamples is IERC721Receiver,Ownable {
     /// @return liquidity The amount of liquidity for the position
     /// @return amount0 The amount of token0
     /// @return amount1 The amount of token1
-    function mintNewPosition(address t0, address t1, int24 tlow,  int24 tup, uint256 amount0ToMint, uint256 amount1ToMint, uint256 slippage, LPtoken _LPtoken)
+    function mintNewPosition(INonfungiblePositionManager.MintParams memory params,
+       LPtoken _LPtoken)
         external onlyOwner
         returns  (
             uint256 tokenId,
@@ -88,48 +90,52 @@ contract LiquidityExamples is IERC721Receiver,Ownable {
             PoolAddress.computeAddress(
                 IPeripheryImmutableState(address(nonfungiblePositionManager)).factory(),
                 PoolAddress.PoolKey({
-                    token0: t0,
-                    token1: t1,
-                    fee: poolFee
+                    token0: params.token0,
+                    token1: params.token1,
+                    fee: params.fee
                 })
             )
         );    
+uint256 lpShares;
+uint256 balance0;
+uint256 balance1;
+uint256 totalSupply;
 
-        // (lpShares, amount0, amount1) = pool.computeLpShares(
-        //     true,
-        //     amount0Desired,
-        //     amount1Desired,
-        //     _balance0(),
-        //     _balance1(),
-        //     totalSupply,
-        //     ticksData
-        // );
+        ( lpShares, amount0, amount1) = pool.computeLpShares(
+            true,
+            params.amount0Desired,
+            params.amount1Desired,
+            balance0,
+            balance1,
+            totalSupply,
+            0x0
+        );
 
 
         // transfer tokens to contract
-        TransferHelper.safeTransferFrom(t0, msg.sender, address(this), amount0ToMint);
-        TransferHelper.safeTransferFrom(t1, msg.sender, address(this), amount1ToMint);
+        TransferHelper.safeTransferFrom(params.token0, msg.sender, address(this), params.amount0Desired);
+        TransferHelper.safeTransferFrom(params.token1, msg.sender, address(this), params.amount1Desired);
 
         // Approve the position manager
-        TransferHelper.safeApprove(t0, address(nonfungiblePositionManager), amount0ToMint);
-        TransferHelper.safeApprove(t1, address(nonfungiblePositionManager), amount1ToMint);
+        TransferHelper.safeApprove(params.token0, address(nonfungiblePositionManager), params.amount0Desired);
+        TransferHelper.safeApprove(params.token1, address(nonfungiblePositionManager), params.amount1Desired);
 
         // The values for tickLower and tickUpper may not work for all tick spacings.
         // Setting amount0Min and amount1Min to 0 is unsafe.
-        INonfungiblePositionManager.MintParams memory params =
-            INonfungiblePositionManager.MintParams({
-                token0: t0,
-                token1: t1,
-                fee: poolFee,
-                tickLower: tlow,
-                tickUpper: tup,
-                amount0Desired: amount0ToMint,
-                amount1Desired: amount1ToMint,
-                amount0Min: slippagify(amount0ToMint, slippage),
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp
-            });
+        // INonfungiblePositionManager.MintParams memory params =
+        //     INonfungiblePositionManager.MintParams({
+        //         token0: t0,
+        //         token1: t1,
+        //         fee: poolFee,
+        //         tickLower: tlow,
+        //         tickUpper: tup,
+        //         amount0Desired: amount0ToMint,
+        //         amount1Desired: amount1ToMint,
+        //         amount0Min: slippagify(amount0ToMint, slippage),
+        //         amount1Min: 0,
+        //         recipient: address(this),
+        //         deadline: block.timestamp
+        //     });
 
         // Note that the pool must already be created and initialized in order to mint
         (tokenId, liquidity, amount0, amount1) = nonfungiblePositionManager.mint(params);
@@ -139,16 +145,16 @@ contract LiquidityExamples is IERC721Receiver,Ownable {
         //record lp token
         LPs[tokenId] = _LPtoken;
         // Remove allowance and refund in both assets.
-        if (amount0 < amount0ToMint) {
-            TransferHelper.safeApprove(t0, address(nonfungiblePositionManager), 0);
-            uint256 refund0 = amount0ToMint - amount0;
-            TransferHelper.safeTransfer(t0, msg.sender, refund0);
+        if (amount0 < params.amount0Desired) {
+            TransferHelper.safeApprove(params.token0, address(nonfungiblePositionManager), 0);
+            uint256 refund0 = params.amount0Desired - amount0;
+            TransferHelper.safeTransfer(params.token0, msg.sender, refund0);
         }
 
-        if (amount1 < amount1ToMint) {
-            TransferHelper.safeApprove(t1, address(nonfungiblePositionManager), 0);
-            uint256 refund1 = amount1ToMint - amount1;
-            TransferHelper.safeTransfer(t1, msg.sender, refund1);
+        if (amount1 < params.amount1Desired) {
+            TransferHelper.safeApprove(params.token1, address(nonfungiblePositionManager), 0);
+            uint256 refund1 = params.amount1Desired - amount1;
+            TransferHelper.safeTransfer(params.token1, msg.sender, refund1);
         }
         _LPtoken.mint(msg.sender, liquidity);
     }
