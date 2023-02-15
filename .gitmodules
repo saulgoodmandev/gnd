@@ -4,7 +4,7 @@
 	branch = v1.4.0
 [submodule "lib/v3-periphery"]
 	path = lib/v3-periphery
-	url = https://github.com/uniswap/v3-periphery
+	url = https://github.com/ChrisiPK/v3-periphery
 	branch = v1.3.0
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
