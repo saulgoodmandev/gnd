@@ -27,9 +27,9 @@ contract gmdUSD is ERC20("gmdUSD", "gmdUSD"), Ownable , ReentrancyGuard{
     }
    
     function GenesisMint(uint256 _amount, IERC20 _token) external nonReentrant {
-        require(totalSupply() <= 150000e18, "max initial supply");
-        require(gmdUSDC.balanceOf(address(this)) <= 100000e18, "max gmdUSDC");
-        require(gDAI.balanceOf(address(this)) <= 50000e18, "max gDai");
+        require(totalSupply() <= 150_000e18, "max initial supply");
+        require(gmdUSDC.balanceOf(address(this)) <= 100_000e18, "max gmdUSDC");
+        require(gDAI.balanceOf(address(this)) <= 50_000e18, "max gDai");
         require(_token == gmdUSDC || _token == gDAI, "not pegged token");
         require(_token.balanceOf(msg.sender) >= _amount, "token balance too low");
         require(_amount <= 5000e18);

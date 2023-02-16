@@ -3,4 +3,3 @@ forge-std/=lib/forge-std/src/
 @uniswap/v3-core/=lib/uniswap-v3-core/
 @uniswap/v3-periphery/=lib/v3-periphery/
 @openzeppelin/=lib/openzeppelin-contracts/
-@unipilot-v2/=lib/unipilot-v2/contracts/

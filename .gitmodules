@@ -10,9 +10,6 @@
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = v4.8.1
-[submodule "lib/unipilot-v2"]
-	path = lib/unipilot-v2
-	url = https://github.com/Unipilot/unipilot-v2
 [submodule "lib/uniswap-v3-core"]
 	path = lib/uniswap-v3-core
 	url = https://github.com/solidity-external-tests/uniswap-v3-core

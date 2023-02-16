@@ -7,3 +7,5 @@ Installed by doing:
 forge install solidity-external-tests/uniswap-v3-core@main_080
 forge install ChrisiPK/v3-periphery@patch-1
 ```
+
+If we want to go downgrade to an old version of solidity, then use https://github.com/OpenZeppelin/openzeppelin-contracts/tree/v3.4.2-solc-0.7.  We can then remove the `libraries/` folder, copied directly from unipilot-v2
