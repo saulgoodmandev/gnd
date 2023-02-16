@@ -88,7 +88,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
                 IUnipilotVault.TicksData({baseTickLower: 0, baseTickUpper: 0, rangeTickLower: 0, rangeTickUpper: 0});
 
             uint256 lpShares;
-            (lpShares, amount0, amount1) = src/uniswapv3lp.sol(
+            (lpShares, amount0, amount1) = pool.computeLpShares(
                 true,
                 params.amount0Desired,
                 params.amount1Desired,
@@ -97,6 +97,9 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
                 lpToken.totalSupply(),
                 ticks
             );
+            console.log("lpShares: ", lpShares);
+            console.log("amount0: ", amount0);
+            console.log("amount1: ", amount1);
         }
         // transfer tokens to contract
         TransferHelper.safeTransferFrom(params.token0, msg.sender, address(this), params.amount0Desired);
