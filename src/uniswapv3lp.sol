@@ -16,9 +16,6 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "forge-std/console.sol";
 
-/**
- * Based off of https://github.com/Uniswap/docs/blob/main/examples/smart-contracts/LiquidityExamples.sol
- */
 contract UniswapV3LP is IERC721Receiver, Ownable {
 
     INonfungiblePositionManager public immutable _posMgr;
