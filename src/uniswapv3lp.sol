@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -13,14 +14,12 @@ import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./libraries/UniswapLiquidityManagement.sol";
 import "forge-std/console.sol";
 
 /**
  * Based off of https://github.com/Uniswap/docs/blob/main/examples/smart-contracts/LiquidityExamples.sol
  */
 contract UniswapV3LP is IERC721Receiver, Ownable {
-    using UniswapLiquidityManagement for IUniswapV3Pool;
 
     INonfungiblePositionManager public immutable _posMgr;
     IUniswapV3Factory public immutable _univ3Factory;
@@ -83,24 +82,22 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
     {
         IUniswapV3Pool pool = IUniswapV3Pool(_univ3Factory.getPool(params.token0, params.token1, params.fee));
 
-        {
-            IUnipilotVault.TicksData memory ticks =
-                IUnipilotVault.TicksData({baseTickLower: 0, baseTickUpper: 0, rangeTickLower: 0, rangeTickUpper: 0});
-
-            uint256 lpShares;
-            (lpShares, amount0, amount1) = pool.computeLpShares(
-                true,
-                params.amount0Desired,
-                params.amount1Desired,
-                IERC20(params.token0).balanceOf(msg.sender),
-                IERC20(params.token1).balanceOf(msg.sender),
-                lpToken.totalSupply(),
-                ticks
-            );
-            console.log("lpShares: ", lpShares);
-            console.log("amount0: ", amount0);
-            console.log("amount1: ", amount1);
-        }
+        // {
+            
+        //     uint256 lpShares;
+        //     (lpShares, amount0, amount1) = pool.computeLpShares(
+        //         true,
+        //         params.amount0Desired,
+        //         params.amount1Desired,
+        //         IERC20(params.token0).balanceOf(msg.sender),
+        //         IERC20(params.token1).balanceOf(msg.sender),
+        //         lpToken.totalSupply(),
+        //         ticks
+        //     );
+        //     console.log("lpShares: ", lpShares);
+        //     console.log("amount0: ", amount0);
+        //     console.log("amount1: ", amount1);
+        // }
         // transfer tokens to contract
         TransferHelper.safeTransferFrom(params.token0, msg.sender, address(this), params.amount0Desired);
         TransferHelper.safeTransferFrom(params.token1, msg.sender, address(this), params.amount1Desired);

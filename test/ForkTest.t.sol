@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.7.6;
+pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "../src/UniswapV3LP.sol";
 import "../src/LPToken.sol";
 import "forge-std/console.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 interface IERC20Extended is IERC20 {
     function mint(address recipient, uint256 _amount) external;

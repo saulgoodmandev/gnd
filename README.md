@@ -1,11 +1,5 @@
 # gnd
 
-Did not use https://github.com/Uniswap/v3-core as it doesn't compile on solidity v0.8, instead used forks https://github.com/solidity-external-tests/uniswap-v3-core/tree/main_080 (from a uniswap team member) and the periphery is from a PR https://github.com/Uniswap/v3-periphery/pull/271
+Since https://github.com/Uniswap/v3-core and v3-periphery cannot compile on solidity 0.8, this project is on solidity 0.7.x.
 
-Installed by doing:
-```
-forge install solidity-external-tests/uniswap-v3-core@main_080
-forge install ChrisiPK/v3-periphery@patch-1
-```
-
-If we want to go downgrade to an old version of solidity, then use https://github.com/OpenZeppelin/openzeppelin-contracts/tree/v3.4.2-solc-0.7.  We can then remove the `libraries/` folder, copied directly from unipilot-v2
+The OpenZeppelin dependency reflects this as well (https://github.com/OpenZeppelin/openzeppelin-contracts/tree/release-v3.4-solc-0.7)
