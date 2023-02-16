@@ -262,7 +262,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
     function deallocateVestRP(uint256 _pid, uint256 _amount, address _user) public nonReentrant{
 
         require(msg.sender == Allocator, "not allocator");
-
+        
+        uint256 fee = _amount.mul(50).div(10000);
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         updatePool(_pid);
@@ -271,8 +272,16 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         uint256 pending = userPoint.mul(pool.accWETHPerShare).div(1e12).sub(user.rewardDebt);
         uint256 RPpending = userPoint.mul(pool.accRPPerShare).div(1e12).sub(user.RPrewardDebt);
 
-        user.RPamount = user.RPamount.add(RPpending).sub(_amount);
-        user.VestAmount = user.VestAmount.sub(_amount);
+        if (_amount > user.VestAmount){
+            user.RPamount = user.RPamount.sub(user.VestAmount);
+            user.VestAmount = 0;
+        }
+        
+        else {
+            user.RPamount = user.RPamount.add(RPpending).add(fee).sub(_amount);
+            user.VestAmount = user.VestAmount.add(fee).sub(_amount);
+        }
+  
         userPoint = user.amount.add(user.RPamount); 
         user.rewardDebt = userPoint.mul(pool.accWETHPerShare).div(1e12);
         user.RPrewardDebt = userPoint.mul(pool.accRPPerShare).div(1e12);
