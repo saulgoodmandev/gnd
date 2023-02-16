@@ -69,7 +69,7 @@ contract ForkTest is Test {
             deadline: 1676494183 // User chose something waaaay out into the future
         });
 
-        LPToken lpToken = new LPToken();
+        LPToken lpToken = new LPToken("lpDAIUSD", "lpDAIUSD");
         lpToken.transferOwnership(address(uniswapv3lp)); //TODO need to do for deployment!
 
         //Setup balances

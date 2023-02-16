@@ -3,10 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "./interfaces/INonfungiblePositionManager.sol";
 import "./interfaces/ILPToken.sol";
 import "./LPToken.sol";
-import '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol';
+import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/IPeripheryImmutableState.sol";
@@ -79,25 +78,25 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
      */
     function mintNewPosition(INonfungiblePositionManager.MintParams memory params, LPToken lpToken, uint256 slippage)
         external
-        onlyOwner //TODO remove onlyOwner
+        onlyOwner //TODO remove onlyOwner?
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
     {
         IUniswapV3Pool pool = IUniswapV3Pool(_univ3Factory.getPool(params.token0, params.token1, params.fee));
-        
+
         {
             IUnipilotVault.TicksData memory ticks =
                 IUnipilotVault.TicksData({baseTickLower: 0, baseTickUpper: 0, rangeTickLower: 0, rangeTickUpper: 0});
 
             uint256 lpShares;
-            uint256 balance0 = IERC20(params.token0).balanceOf(msg.sender);
-            uint256 balance1 = IERC20(params.token1).balanceOf(msg.sender);
-            uint256 totalSupply;
-
-            (lpShares, amount0, amount1) = pool.computeLpShares(
-                true, params.amount0Desired, params.amount1Desired, balance0, balance1, totalSupply, ticks
+            (lpShares, amount0, amount1) = src/uniswapv3lp.sol(
+                true,
+                params.amount0Desired,
+                params.amount1Desired,
+                IERC20(params.token0).balanceOf(msg.sender),
+                IERC20(params.token1).balanceOf(msg.sender),
+                lpToken.totalSupply(),
+                ticks
             );
-
-            lpToken.set(lpShares, balance0, balance1);
         }
         // transfer tokens to contract
         TransferHelper.safeTransferFrom(params.token0, msg.sender, address(this), params.amount0Desired);
@@ -201,8 +200,8 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
     }
 
     /**
-    TODO test against https://arbiscan.io/tx/0xc4df8766ba80841f20210c067a27fa853567696495bc438b63001f9ef8c5ee64
-
+     * TODO test against https://arbiscan.io/tx/0xc4df8766ba80841f20210c067a27fa853567696495bc438b63001f9ef8c5ee64
+     * 
      * @notice Increases liquidity in the current range
      * @dev Pool must be initialized already to add liquidity
      * @param tokenId The id of the erc721 token
