@@ -17,7 +17,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "forge-std/console.sol";
 
 contract UniswapV3LP is IERC721Receiver, Ownable {
-
     INonfungiblePositionManager public immutable _posMgr;
     IUniswapV3Factory public immutable _univ3Factory;
 
@@ -77,24 +76,6 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         onlyOwner //TODO remove onlyOwner?
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
     {
-        IUniswapV3Pool pool = IUniswapV3Pool(_univ3Factory.getPool(params.token0, params.token1, params.fee));
-
-        // {
-            
-        //     uint256 lpShares;
-        //     (lpShares, amount0, amount1) = pool.computeLpShares(
-        //         true,
-        //         params.amount0Desired,
-        //         params.amount1Desired,
-        //         IERC20(params.token0).balanceOf(msg.sender),
-        //         IERC20(params.token1).balanceOf(msg.sender),
-        //         lpToken.totalSupply(),
-        //         ticks
-        //     );
-        //     console.log("lpShares: ", lpShares);
-        //     console.log("amount0: ", amount0);
-        //     console.log("amount1: ", amount1);
-        // }
         // transfer tokens to contract
         TransferHelper.safeTransferFrom(params.token0, msg.sender, address(this), params.amount0Desired);
         TransferHelper.safeTransferFrom(params.token1, msg.sender, address(this), params.amount1Desired);
@@ -104,8 +85,8 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         TransferHelper.safeApprove(params.token1, address(_posMgr), params.amount1Desired);
 
         // Note that the pool must already be created and initialized in order to mint
-        params.amount0Min = slippagify(amount0, slippage);
-        params.amount1Min = slippagify(amount1, slippage);
+        params.amount0Min = slippagify(params.amount0Desired, slippage);
+        params.amount1Min = slippagify(params.amount1Desired, slippage);
 
         (tokenId, liquidity, amount0, amount1) = _posMgr.mint(params);
 
@@ -198,7 +179,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
 
     /**
      * TODO test against https://arbiscan.io/tx/0xc4df8766ba80841f20210c067a27fa853567696495bc438b63001f9ef8c5ee64
-     * 
+     *
      * @notice Increases liquidity in the current range
      * @dev Pool must be initialized already to add liquidity
      * @param tokenId The id of the erc721 token
