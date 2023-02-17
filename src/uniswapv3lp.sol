@@ -61,7 +61,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
 
     function slippagify(uint256 amount, uint256 slippage) internal pure returns (uint256) {
         require(slippage >= 0 && slippage <= 1e5, "not in range");
-        return amount * (1e5 - slippage) / 1e5;
+        return amount.mul(1e5.sub(slippage)).div(1e5);
     }
 
     /**
