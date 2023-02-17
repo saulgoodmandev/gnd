@@ -17,6 +17,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "forge-std/console.sol";
 
 contract UniswapV3LP is IERC721Receiver, Ownable {
+    using SafeMath for uint256;
+    using SafeMath for uint128;
+
     INonfungiblePositionManager public immutable _posMgr;
     IUniswapV3Factory public immutable _univ3Factory;
 
@@ -151,14 +154,15 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
 
         // amount0Min and amount1Min are price slippage checks
         // if the amount received after burning is not greater than these minimums, transaction will fail
+        (uint256 amount0Min, uint256 amount1Min) = calcExpectedMin(tokenId, slippage);
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager
             .DecreaseLiquidityParams({
             tokenId: tokenId,
             liquidity: _liquidity,
-            amount0Min: slippagify(_liquidity * 45 / 100, slippage),
-            amount1Min: slippagify(_liquidity * 45 / 100, slippage),
+            amount0Min: amount0Min,
+            amount1Min: amount1Min,
             deadline: block.timestamp
-        });
+        });    
 
         INonfungiblePositionManager.CollectParams memory params2 = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
@@ -171,10 +175,20 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         _posMgr.collect(params2);
 
         // send liquidity back to user
-        _sendToUser(tokenId,msg.sender, amount0, amount1);
+        _sendToUser(tokenId, msg.sender, amount0, amount1);
 
         //burn lp
         lp.burn(msg.sender, _liquidity);
+    }
+
+    function calcExpectedMin(uint256 tokenId, uint256 slippage) internal view returns (uint256 amount0, uint256 amount1) {
+        ILPToken lp = lps[tokenId];
+        uint256 balance = lp.balanceOf(msg.sender);
+        uint256 totalSupply = lp.totalSupply();
+
+        (,,,,,,,,,, uint128 tokensOwed0, uint128 tokensOwed1) = _posMgr.positions(tokenId);
+        amount0 = slippagify(tokensOwed0.mul(balance).div(totalSupply), slippage);
+        amount1 = slippagify(tokensOwed1.mul(balance).div(totalSupply), slippage);
     }
 
     /**
