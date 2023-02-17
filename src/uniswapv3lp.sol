@@ -170,8 +170,8 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         (amount0, amount1) = _posMgr.decreaseLiquidity(params);
         _posMgr.collect(params2);
 
-        // send liquidity back to owner
-        _sendToOwner(tokenId, amount0, amount1);
+        // send liquidity back to user
+        _sendToUser(tokenId,msg.sender, amount0, amount1);
 
         //burn lp
         lp.burn(msg.sender, _liquidity);
