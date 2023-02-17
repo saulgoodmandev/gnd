@@ -17,7 +17,10 @@ interface IERC20Extended is IERC20 {
     function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
 }
 
-contract ForkTest is Test {
+/**
+ * Based off of https://arbiscan.io/tx/0x0e98dc460c6445f745e2e637ddca6be72767914ca9d4cba9b838f84138622525
+ */
+contract LPTest is Test {
     //Copied from IERC20
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
@@ -106,6 +109,7 @@ contract ForkTest is Test {
         (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
             uniswapv3lp.mintNewPosition(params, lpToken, slippage);
 
+        // These numbers tie out with IncreaseLiquidity event from https://arbiscan.io/tx/0x0e98dc460c6445f745e2e637ddca6be72767914ca9d4cba9b838f84138622525  <-- TODO validate this event
         assertEq(tokenId, 329324);
         assertEq(uint256(liquidity), 26035825305594);
         assertEq(amount0, 16027151935214508);
