@@ -61,7 +61,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
 
     function slippagify(uint256 amount, uint256 slippage) internal pure returns (uint256) {
         require(slippage >= 0 && slippage <= 1e5, "not in range");
-        return amount.mul(1e5.sub(slippage)).div(1e5);
+        return amount.mul(1e5 - slippage).div(1e5);
     }
 
     /**
@@ -144,13 +144,13 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
      * @return amount0 The amount received back in token0
      * @return amount1 The amount returned back in token1
      */
-    function decreaseLiquidity(uint256 tokenId, uint128 _liquidity, uint256 slippage)
+    function decreaseLiquidity(uint256 tokenId, uint128 liquidity, uint256 slippage)
         external
         returns (uint256 amount0, uint256 amount1)
     {
         // caller must be the owner of the NFT
         ILPToken lp = lps[tokenId];
-        require(lp.balanceOf(msg.sender) >= _liquidity, "balance too low");
+        require(lp.balanceOf(msg.sender) >= liquidity, "balance too low");
 
         // amount0Min and amount1Min are price slippage checks
         // if the amount received after burning is not greater than these minimums, transaction will fail
@@ -158,7 +158,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager
             .DecreaseLiquidityParams({
             tokenId: tokenId,
-            liquidity: _liquidity,
+            liquidity: liquidity,
             amount0Min: amount0Min,
             amount1Min: amount1Min,
             deadline: block.timestamp
@@ -178,7 +178,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         _sendToUser(tokenId, msg.sender, amount0, amount1);
 
         //burn lp
-        lp.burn(msg.sender, _liquidity);
+        lp.burn(msg.sender, liquidity);
     }
 
     function calcExpectedMin(uint256 tokenId, uint256 slippage) internal view returns (uint256 amount0, uint256 amount1) {

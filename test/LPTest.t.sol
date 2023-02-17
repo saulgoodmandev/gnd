@@ -7,6 +7,7 @@ import "../src/UniswapV3LP.sol";
 import "../src/LPToken.sol";
 import "forge-std/console.sol";
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
+import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -19,13 +20,23 @@ interface IERC20Extended is IERC20 {
 
 /**
  * Based off of https://arbiscan.io/tx/0x0e98dc460c6445f745e2e637ddca6be72767914ca9d4cba9b838f84138622525
-
- TODO build test case for decreaseLiquidity from https://arbiscan.io/tx/0x081b152f215a5c2a637f7a467e10a1675951424a0b82ccba59783eea684226c8
+ *
+ *  TODO build test case for decreaseLiquidity from https://arbiscan.io/tx/0x081b152f215a5c2a637f7a467e10a1675951424a0b82ccba59783eea684226c8
  */
 contract LPTest is Test {
     //Copied from IERC20
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    //Copied from IUniswapV3PoolEvents
+    event Burn(
+        address indexed owner,
+        int24 indexed tickLower,
+        int24 indexed tickUpper,
+        uint128 amount,
+        uint256 amount0,
+        uint256 amount1
+    );
 
     //https://app.uniswap.org/#/add/0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1/0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8/500?maxPrice=1.001153
     address public constant nonfungiblePositionManager = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
@@ -37,7 +48,7 @@ contract LPTest is Test {
     // univ3pool dai/usdc 500 fee: 0xd37Af656Abf91c7f548FfFC0133175b5e4d3d5e6
     UniswapV3LP public uniswapv3lp;
 
-    uint256 amount0ToMint = 16027151935214508; //$ 0.016027151935214508
+    uint256 amount0ToMint = 16027151935214508; //$ 0.0amount0ToMint
     uint256 amount1ToMint = 10000; // $0.01
     uint256 slippage = 500;
 
@@ -49,6 +60,9 @@ contract LPTest is Test {
     IUniswapV3Pool pool;
     LPToken lpToken;
 
+    int24 tickLower;
+    int24 tickUpper;
+
     function setUp() public {
         vm.createSelectFork(vm.envString("RPC_URL"), 61253298);
 
@@ -58,9 +72,9 @@ contract LPTest is Test {
         int24 tickSpacing = pool.tickSpacing();
         (, int24 currentTick,,,,,) = pool.slot0();
 
-        int24 tickLower = (currentTick / tickSpacing) * tickSpacing;
+        tickLower = (currentTick / tickSpacing) * tickSpacing;
         tickLower -= tickSpacing; //-276320 User of this txn went an extra tick space lower
-        int24 tickUpper = (currentTick / tickSpacing) * tickSpacing + tickSpacing; //-276310
+        tickUpper = (currentTick / tickSpacing) * tickSpacing + tickSpacing; //-276310
 
         // currtTick: -276323
         // tickLower: -276330
@@ -102,7 +116,7 @@ contract LPTest is Test {
 
     function testMint() public {
         vm.expectEmit(true, true, true, true, address(DAI));
-        emit Transfer(address(this), address(uniswapv3lp), 16027151935214508);
+        emit Transfer(address(this), address(uniswapv3lp), amount0ToMint);
         vm.expectEmit(true, true, true, true, address(USDC));
         emit Transfer(address(this), address(uniswapv3lp), 10000);
 
@@ -114,7 +128,7 @@ contract LPTest is Test {
         // These numbers tie out with IncreaseLiquidity event from https://arbiscan.io/tx/0x0e98dc460c6445f745e2e637ddca6be72767914ca9d4cba9b838f84138622525  <-- TODO validate this event
         assertEq(tokenId, 329324);
         assertEq(uint256(liquidity), 26035825305594);
-        assertEq(amount0, 16027151935214508);
+        assertEq(amount0, amount0ToMint);
         assertEq(amount1, 10000);
     }
 
@@ -136,5 +150,42 @@ contract LPTest is Test {
         );
         vm.expectRevert(bytes("Price slippage check"));
         uniswapv3lp.mintNewPosition(params, lpToken, slippage);
+    }
+
+    function testMintThenDecreaseLiquidity() public {
+        vm.expectEmit(true, true, true, true, address(DAI));
+        emit Transfer(address(this), address(uniswapv3lp), amount0ToMint);
+        vm.expectEmit(true, true, true, true, address(USDC));
+        emit Transfer(address(this), address(uniswapv3lp), 10000);
+
+        //TODO validate ALL Transfer and approval events to tighten this test
+
+        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
+            uniswapv3lp.mintNewPosition(params, lpToken, slippage);
+
+        // These numbers tie out with IncreaseLiquidity event from https://arbiscan.io/tx/0x0e98dc460c6445f745e2e637ddca6be72767914ca9d4cba9b838f84138622525  <-- TODO validate this event
+        assertEq(tokenId, 329324);
+        assertEq(uint256(liquidity), 26035825305594);
+        assertEq(amount0, amount0ToMint);
+        assertEq(amount1, 10000);
+
+        uint128 decreaseLiquidity = liquidity / 2;
+        {
+            //TODO validate ALL Transfer and approval events to tighten this test
+
+            vm.expectEmit(true, true, true, true, UNISWAP_V3_POOL);
+            emit Burn(
+                address(nonfungiblePositionManager),
+                tickLower,
+                tickUpper,
+                decreaseLiquidity,
+                amount0ToMint / 2 - 1,
+                amount1ToMint / 2 - 1
+                );
+
+            (amount0, amount1) = uniswapv3lp.decreaseLiquidity(tokenId, decreaseLiquidity, slippage);
+        }
+        assertEq(amount0, amount0ToMint / 2 - 1);
+        assertEq(amount1, amount1ToMint / 2 - 1);
     }
 }
