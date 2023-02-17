@@ -167,8 +167,8 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         INonfungiblePositionManager.CollectParams memory params2 = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
             recipient: address(this),
-            amount0Max: 340282366920938463463374607431768211455,
-            amount1Max: 340282366920938463463374607431768211455
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
         });
 
         (amount0, amount1) = _posMgr.decreaseLiquidity(params);
