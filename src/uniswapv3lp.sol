@@ -10,7 +10,10 @@ import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.s
 import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/IPeripheryImmutableState.sol";
+import "@uniswap/v3-periphery/contracts/libraries/PositionValue.sol";
+
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -19,6 +22,7 @@ import "forge-std/console.sol";
 contract UniswapV3LP is IERC721Receiver, Ownable {
     using SafeMath for uint256;
     using SafeMath for uint128;
+    using PositionValue for INonfungiblePositionManager;
 
     INonfungiblePositionManager public immutable _posMgr;
     IUniswapV3Factory public immutable _univ3Factory;
@@ -154,7 +158,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
 
         // amount0Min and amount1Min are price slippage checks
         // if the amount received after burning is not greater than these minimums, transaction will fail
-        (uint256 amount0Min, uint256 amount1Min) = calcExpectedMin(tokenId, slippage);
+        (uint256 amount0Min, uint256 amount1Min) = calcExpectedMin(tokenId, liquidity, slippage);
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager
             .DecreaseLiquidityParams({
             tokenId: tokenId,
@@ -162,7 +166,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
             amount0Min: amount0Min,
             amount1Min: amount1Min,
             deadline: block.timestamp
-        });    
+        });
 
         INonfungiblePositionManager.CollectParams memory params2 = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
@@ -172,6 +176,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         });
 
         (amount0, amount1) = _posMgr.decreaseLiquidity(params);
+        
         _posMgr.collect(params2);
 
         // send liquidity back to user
@@ -181,14 +186,25 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
         lp.burn(msg.sender, liquidity);
     }
 
-    function calcExpectedMin(uint256 tokenId, uint256 slippage) internal view returns (uint256 amount0, uint256 amount1) {
-        ILPToken lp = lps[tokenId];
-        uint256 balance = lp.balanceOf(msg.sender);
-        uint256 totalSupply = lp.totalSupply();
+    function calcExpectedMin(uint256 tokenId, uint128 liquidity, uint256 slippage)
+        internal
+        view
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (,, address token0, address token1, uint24 fee,,,,,,,) = _posMgr.positions(tokenId);
 
-        (,,,,,,,,,, uint128 tokensOwed0, uint128 tokensOwed1) = _posMgr.positions(tokenId);
-        amount0 = slippagify(tokensOwed0.mul(balance).div(totalSupply), slippage);
-        amount1 = slippagify(tokensOwed1.mul(balance).div(totalSupply), slippage);
+        IUniswapV3Pool pool = IUniswapV3Pool(
+            PoolAddress.computeAddress(
+                _posMgr.factory(), PoolAddress.PoolKey({token0: token0, token1: token1, fee: fee})
+            )
+        );
+
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+        (uint256 posValue0, uint256 posValue1) = _posMgr.total(tokenId, sqrtRatioX96); //Calls PositionValue::total() see https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/PositionValue.sol#L22
+
+        uint256 totalSupply = lps[tokenId].totalSupply();
+        amount0 = slippagify(posValue0.mul(liquidity).div(totalSupply), slippage);
+        amount1 = slippagify(posValue1.mul(liquidity).div(totalSupply), slippage);
     }
 
     /**

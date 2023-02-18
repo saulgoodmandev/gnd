@@ -132,7 +132,7 @@ contract LPTest is Test {
         assertEq(amount1, 10000);
     }
 
-    function testSlippage() public {
+    function testMintSlippage() public {
         uint256 belowSlippage0 = (amount0ToMint * (1e5 - slippage) / 1e5) - 1;
         vm.mockCall(
             address(pool),
@@ -187,5 +187,34 @@ contract LPTest is Test {
         }
         assertEq(amount0, amount0ToMint / 2 - 1);
         assertEq(amount1, amount1ToMint / 2 - 1);
+    }
+
+    function testDecreaseLiquiditySlippage() public {
+        vm.expectEmit(true, true, true, true, address(DAI));
+        emit Transfer(address(this), address(uniswapv3lp), amount0ToMint);
+        vm.expectEmit(true, true, true, true, address(USDC));
+        emit Transfer(address(this), address(uniswapv3lp), 10000);
+
+        //TODO validate ALL Transfer and approval events to tighten this test
+
+        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
+            uniswapv3lp.mintNewPosition(params, lpToken, slippage);
+
+        // These numbers tie out with IncreaseLiquidity event from https://arbiscan.io/tx/0x0e98dc460c6445f745e2e637ddca6be72767914ca9d4cba9b838f84138622525  <-- TODO validate this event
+        assertEq(tokenId, 329324);
+        assertEq(uint256(liquidity), 26035825305594);
+        assertEq(amount0, amount0ToMint);
+        assertEq(amount1, amount1ToMint);
+
+        uint128 decreaseLiquidity = liquidity / 2;
+        {
+            vm.mockCall(
+                address(pool),
+                abi.encodeWithSelector(IUniswapV3PoolActions.burn.selector),
+                abi.encode(7973508087769216 - 1, 4974 - 1)
+            );
+            vm.expectRevert(bytes("Price slippage check"));
+            (amount0, amount1) = uniswapv3lp.decreaseLiquidity(tokenId, decreaseLiquidity, slippage);
+        }
     }
 }
