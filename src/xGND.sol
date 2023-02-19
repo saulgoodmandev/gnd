@@ -72,6 +72,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
         }));
 
         stakingContract.allocateVestRP(0, _amount.mul(100).div(200), msg.sender);
+        userPositions[msg.sender] += 1; 
         _burn(msg.sender, _amount);
     }
 
