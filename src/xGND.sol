@@ -55,7 +55,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
             remain = 0;
         }
         else {
-            remain = vestingPeriod- timePass;
+            remain = userInfo[msg.sender][id].VestPeriod- timePass;
         }
         return remain;
     }
