@@ -10,13 +10,20 @@ import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.s
 import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/IPeripheryImmutableState.sol";
+import "@uniswap/v3-periphery/contracts/libraries/PositionValue.sol";
+
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "forge-std/console.sol";
 
 contract UniswapV3LP is IERC721Receiver, Ownable {
+    using SafeMath for uint256;
+    using SafeMath for uint128;
+    using PositionValue for INonfungiblePositionManager;
+
     INonfungiblePositionManager public immutable _posMgr;
     IUniswapV3Factory public immutable _univ3Factory;
 
@@ -58,7 +65,7 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
 
     function slippagify(uint256 amount, uint256 slippage) internal pure returns (uint256) {
         require(slippage >= 0 && slippage <= 1e5, "not in range");
-        return amount * (1e5 - slippage) / 1e5;
+        return amount.mul(1e5 - slippage).div(1e5);
     }
 
     /**
@@ -141,40 +148,63 @@ contract UniswapV3LP is IERC721Receiver, Ownable {
      * @return amount0 The amount received back in token0
      * @return amount1 The amount returned back in token1
      */
-    function decreaseLiquidity(uint256 tokenId, uint128 _liquidity, uint256 slippage)
+    function decreaseLiquidity(uint256 tokenId, uint128 liquidity, uint256 slippage)
         external
         returns (uint256 amount0, uint256 amount1)
     {
         // caller must be the owner of the NFT
         ILPToken lp = lps[tokenId];
-        require(lp.balanceOf(msg.sender) >= _liquidity, "balance too low");
+        require(lp.balanceOf(msg.sender) >= liquidity, "balance too low");
 
         // amount0Min and amount1Min are price slippage checks
         // if the amount received after burning is not greater than these minimums, transaction will fail
+        (uint256 amount0Min, uint256 amount1Min) = calcExpectedMin(tokenId, liquidity, slippage);
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager
             .DecreaseLiquidityParams({
             tokenId: tokenId,
-            liquidity: _liquidity,
-            amount0Min: slippagify(_liquidity * 45 / 100, slippage),
-            amount1Min: slippagify(_liquidity * 45 / 100, slippage),
+            liquidity: liquidity,
+            amount0Min: amount0Min,
+            amount1Min: amount1Min,
             deadline: block.timestamp
         });
 
         INonfungiblePositionManager.CollectParams memory params2 = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
             recipient: address(this),
-            amount0Max: 340282366920938463463374607431768211455,
-            amount1Max: 340282366920938463463374607431768211455
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
         });
 
         (amount0, amount1) = _posMgr.decreaseLiquidity(params);
+        
         _posMgr.collect(params2);
 
         // send liquidity back to user
-        _sendToUser(tokenId,msg.sender, amount0, amount1);
+        _sendToUser(tokenId, msg.sender, amount0, amount1);
 
         //burn lp
-        lp.burn(msg.sender, _liquidity);
+        lp.burn(msg.sender, liquidity);
+    }
+
+    function calcExpectedMin(uint256 tokenId, uint128 liquidity, uint256 slippage)
+        internal
+        view
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (,, address token0, address token1, uint24 fee,,,,,,,) = _posMgr.positions(tokenId);
+
+        IUniswapV3Pool pool = IUniswapV3Pool(
+            PoolAddress.computeAddress(
+                _posMgr.factory(), PoolAddress.PoolKey({token0: token0, token1: token1, fee: fee})
+            )
+        );
+
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+        (uint256 posValue0, uint256 posValue1) = _posMgr.total(tokenId, sqrtRatioX96); //Calls PositionValue::total() see https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/PositionValue.sol#L22
+
+        uint256 totalSupply = lps[tokenId].totalSupply();
+        amount0 = slippagify(posValue0.mul(liquidity).div(totalSupply), slippage);
+        amount1 = slippagify(posValue1.mul(liquidity).div(totalSupply), slippage);
     }
 
     /**
