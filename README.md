@@ -10,7 +10,20 @@ run `forge test -vvv`
 
 # Deployment
 
-Test the deployment script by running `forge 
+To test the development script under script/ dir, run:
+
+```
+forge script script/uniswapv3lp.s.sol:UniswapV3lpScript  --rpc-url https://goerli-rollup.arbitrum.io/rpc
+```
+
+To publish to prod, run:
+
+```
 cp .env.sample .env
-Fill in your privary key, and run:
-forge script script/uniswapv3lp.s.sol:UniswapV3lpScript --rpc-url $RPC_URL --broadcast --verify -vvvv
+```
+
+Fill in your privary key to .env file, and run:
+```
+forge script script/uniswapv3lp.s.sol:UniswapV3lpScript  --rpc-url https://arb1.arbitrum.io/rpc --broadcast --verify -vvvv
+```
+

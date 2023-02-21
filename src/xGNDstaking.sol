@@ -231,7 +231,7 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         pool.lastRewardTime = block.timestamp;
     }
     //add RP
-    function allocateVestRP(uint256 _pid, uint256 _amount, address _user) public nonReentrant{
+    function allocateVestRP(uint256 _pid, uint256 _amount, address _user) external nonReentrant{
 
         require(msg.sender == Allocator, "not allocator");
 
@@ -260,7 +260,7 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
 
     }
 
-    function deallocateVestRP(uint256 _pid, uint256 _amount, address _user) public nonReentrant{
+    function deallocateVestRP(uint256 _pid, uint256 _amount, address _user) external nonReentrant{
 
         require(msg.sender == Allocator, "not allocator");
         

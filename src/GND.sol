@@ -14,9 +14,9 @@ contract GND is ERC20("GND", "GND"), Ownable {
     address public stakingContract;
     address public xGND;
 
-    constructor() {
-        stakingContract = msg.sender;
-        _mint(msg.sender, 19e18);
+    constructor(address _stakingContract) {
+        stakingContract = _stakingContract;
+        _mint(stakingContract, 19e18);
     }
 
  

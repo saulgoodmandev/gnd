@@ -13,9 +13,11 @@ contract UniswapV3lpScript is Script {
     UniswapV3LP public _uniswapv3lp;
     gmdUSD public _gmdUSD;
     GND public _gnd;
-    
+
     xGND public _xGND;
     xGNDstaking public _xGNDstaking;
+
+    address public newOwner = 0xD70811f1e4992aA051d54e29a04c8925B32fBa7d;
 
     function setUp() public {}
 
@@ -24,12 +26,17 @@ contract UniswapV3lpScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         _uniswapv3lp = new UniswapV3LP(Constant.NON_FUNGIBLE_POS_MGR, Constant.UNISWAP_V3_FACTORY);
+        _uniswapv3lp.transferOwnership(newOwner);
         _gmdUSD = new gmdUSD();
-        _gnd = new GND();
-        _gnd.transferOwnership(address(_uniswapv3lp));
-        _xGNDstaking = new xGNDstaking(0, 0, 0);
-        _xGND = new xGND(address(_gnd), address(_xGNDstaking));
+        _gmdUSD.transferOwnership(newOwner);
 
+        _xGNDstaking = new xGNDstaking(0, 0, 0);
+        _xGNDstaking.transferOwnership(newOwner);
+        _gnd = new GND(address(_xGNDstaking));
+        _gnd.transferOwnership(address(_uniswapv3lp));
+
+        _xGND = new xGND(address(_gnd), address(_xGNDstaking));
+        _xGND.transferOwnership(newOwner);
 
         vm.stopBroadcast();
     }
