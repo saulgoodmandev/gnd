@@ -19,11 +19,11 @@ interface staking {
 
 contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{ 
     token public gnd;
-    staking public stakingContract;
-    constructor(address _token, address _staking) {
+    staking public divContract;
+    constructor(address _token) {
 
         gnd = token(_token);
-        stakingContract = staking(_staking);
+        _mint(msg.sender, 40000e18);
     }
 
     using SafeERC20 for IERC20;
@@ -41,7 +41,11 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
     uint256 public vestingPeriod = 200 days;
     uint256 public shortVestingPeriod = 20 days;
   
+   function mint(address recipient, uint256 _amount) onlyOwner external {
+     
+        _mint(recipient, _amount);
 
+    }
 
     function burn(uint256 _amount) external  {
         _burn(msg.sender, _amount);
@@ -70,7 +74,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
             VestPeriod: vestingPeriod
         }));
 
-        stakingContract.allocateVestRP(0, _amount.mul(100).div(200), msg.sender);
+        divContract.allocateVestRP(0, _amount.mul(100).div(200), msg.sender);
         userPositions[msg.sender] += 1; 
         _burn(msg.sender, _amount);
     }
@@ -85,7 +89,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
             VestPeriod: shortVestingPeriod
         }));
 
-        stakingContract.allocateVestRP(0, _amount.mul(100).div(400), msg.sender);
+        divContract.allocateVestRP(0, _amount.mul(100).div(400), msg.sender);
         _burn(msg.sender, _amount);
     }
 
@@ -103,8 +107,12 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
         vestPosition storage position = userInfo[msg.sender][id];
         uint256 claimAmount = position.totalVested;
         position.totalVested = 0;
-        stakingContract.deallocateVestRP(0, claimAmount.mul(100).div(200), msg.sender);
+        divContract.deallocateVestRP(0, claimAmount.mul(100).div(200), msg.sender);
         gnd.mint(msg.sender, claimAmount);
+    }
+
+    function updateStakers(staking _div) external onlyOwner {
+        divContract = _div;
     }
 
 }

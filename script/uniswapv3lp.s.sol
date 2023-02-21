@@ -6,12 +6,12 @@ import "../src/UniswapV3LP.sol";
 import "../src/GND.sol";
 import "../src/xGND.sol";
 import "../src/xGNDstaking.sol";
-import "../src/gmdUSD.sol";
+import "../src/gmUSD.sol";
 import "../src/Constant.sol";
 
 contract UniswapV3lpScript is Script {
     UniswapV3LP public _uniswapv3lp;
-    gmdUSD public _gmdUSD;
+    gmUSD public _gmUSD;
     GND public _gnd;
 
     xGND public _xGND;
@@ -27,8 +27,8 @@ contract UniswapV3lpScript is Script {
 
         // _uniswapv3lp = new UniswapV3LP(Constant.NON_FUNGIBLE_POS_MGR, Constant.UNISWAP_V3_FACTORY);
         // _uniswapv3lp.transferOwnership(newOwner);
-        _gmdUSD = new gmdUSD();
-        // _gmdUSD.transferOwnership(newOwner);
+        _gmUSD = new gmUSD();
+        // _gmUSD.transferOwnership(newOwner);
 
         // _xGNDstaking = new xGNDstaking(0, 0, 0);
         // _xGNDstaking.transferOwnership(newOwner);

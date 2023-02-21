@@ -1,6 +1,5 @@
 
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.7.6;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -16,7 +15,7 @@ contract GND is ERC20("GND", "GND"), Ownable {
 
     constructor(address _stakingContract) {
         stakingContract = _stakingContract;
-        _mint(stakingContract, 19e18);
+        _mint(stakingContract, 18000e18);
     }
 
  

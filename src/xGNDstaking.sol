@@ -7,6 +7,11 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
+interface stakingpool{
+    function vote(address account, uint256 _amount, uint256 _poolid) external;
+    function redeemVote(address account, uint256 _poolid) external ;
+}
+
 contract xGNDstaking is Ownable,ReentrancyGuard {
 
     using SafeMath for uint256;
@@ -15,7 +20,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
     // Info of each user.
     struct UserInfo {
         
-        bool voted;
+        uint256 votePower;
+        uint256 votedID;
         uint256 VestAmount;
         uint256 RPamount;
         uint256 amount;     // How many LP tokens the user has provided.
@@ -44,10 +50,10 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         uint256 accRPPerShare; //RPpershare
     }
 
-    IERC20 public WETH = IERC20(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    IERC20 public WETH = IERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
 
     // Dev address.
-    address teamD;
+    stakingpool public LPstake;
     address public Allocator;
     // WETH tokens created per block.
     uint256 public WETHPerSecond;
@@ -70,6 +76,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
     // The block time when WETH mining starts.
     uint256 public immutable startTime;
 
+    mapping (address => bool) public voted;
+
     bool public withdrawable = false;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -79,12 +87,14 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
     constructor(
         uint256 _WETHPerSecond,
         uint256 _RPPerSecond,
-        uint256 _startTime
+        uint256 _startTime,
+        IERC20 xGND
     ) {
 
         WETHPerSecond = _WETHPerSecond;
         startTime = _startTime;
         RPPerSecond = _RPPerSecond;
+        add(xGND);
     }
 
     function openWithdraw() external onlyOwner{
@@ -125,6 +135,50 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         RPPerSecond = _RPPerSecond;
     }
 
+    function getTotalVotePower(address _user, uint256 _pid) public view returns(uint256){
+
+        UserInfo storage user = userInfo[_pid][_user];
+        uint256 amount1 = user.amount + user.RPamount;
+        return  amount1;
+    }
+
+    function votePool(address _user, uint256 _pid) external {
+        require(voted[_user] == false);
+        UserInfo storage user = userInfo[0][_user];
+        LPstake.vote(_user, getTotalVotePower(_user, 0), _pid);
+        user.votedID = _pid;
+        voted[_user] = true;
+    }
+    
+    function updateVotePool(address _user) internal {
+
+        if (voted[_user]){
+            UserInfo storage user = userInfo[0][_user];
+            LPstake.vote(_user, getTotalVotePower(_user, 0), user.votedID);
+        }
+        if (getTotalVotePower(_user, 0) == 0){
+            voted[_user] = false;
+        }
+
+    }
+
+    function unVotePool(address _user) external {
+
+        require(voted[_user], "not voted");
+        UserInfo storage user = userInfo[0][_user];
+        LPstake.redeemVote(_user, user.votedID);
+        voted[_user] = false;
+        
+
+    }
+
+    function updateTotalVotePower(address _user, uint256 _pid) internal returns(uint256){
+
+        UserInfo storage user = userInfo[_pid][_user];
+        user.votePower = getTotalVotePower(_user, _pid);
+        return user.votePower;
+    }
+
     function checkForDuplicate(IERC20 _lpToken) internal view {
         uint256 length = poolInfo.length;
         for (uint256 _pid = 0; _pid < length; _pid++) {
@@ -134,33 +188,22 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
     }
 
     // Add a new lp to the pool. Can only be called by the owner.
-    function add(uint256 _allocPoint, IERC20 _lpToken) external onlyOwner {
-        require(_allocPoint <= MaxAllocPoint, "add: too many alloc points!!");
+    function add(IERC20 _lpToken) internal {
 
         checkForDuplicate(_lpToken); // ensure you cant add duplicate pools
 
         massUpdatePools();
 
         uint256 lastRewardTime = block.timestamp > startTime ? block.timestamp : startTime;
-        totalAllocPoint = totalAllocPoint.add(_allocPoint);
+        totalAllocPoint = totalAllocPoint.add(1000);
         poolInfo.push(PoolInfo({
             lpToken: _lpToken,
             totalRP: 0,
-            allocPoint: _allocPoint,
+            allocPoint: 1000,
             lastRewardTime: lastRewardTime,
             accWETHPerShare: 0,
             accRPPerShare:0
         }));
-    }
-
-    // Update the given pool's WETH allocation point. Can only be called by the owner.
-    function set(uint256 _pid, uint256 _allocPoint) external onlyOwner {
-        require(_allocPoint <= MaxAllocPoint, "add: too many alloc points!!");
-
-        massUpdatePools();
-
-        totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
-        poolInfo[_pid].allocPoint = _allocPoint;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -253,7 +296,7 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         user.RPrewardDebt = userPoint.mul(pool.accRPPerShare).div(1e12);
 
         pool.totalRP = pool.totalRP.add(RPpending).add(_amount).sub(fee);
-
+        updateTotalVotePower(_user, _pid);
         if(pending > 0) {
             safeWETHTransfer(msg.sender, pending);
         }
@@ -288,6 +331,7 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         user.RPrewardDebt = userPoint.mul(pool.accRPPerShare).div(1e12);
 
         pool.totalRP = pool.totalRP.add(RPpending).sub(_amount);
+        updateTotalVotePower(_user, _pid);
 
         if(pending > 0) {
             safeWETHTransfer(msg.sender, pending);
@@ -316,7 +360,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         user.RPrewardDebt = userPoint.mul(pool.accRPPerShare).div(1e12);
 
         pool.totalRP = pool.totalRP.add(RPpending);
-
+        updateTotalVotePower(msg.sender, _pid);
+        updateVotePool(msg.sender);
         if(pending > 0) {
             safeWETHTransfer(msg.sender, pending);
         }
@@ -347,7 +392,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         userPoint = user.amount.add(user.RPamount); 
         user.rewardDebt = userPoint.mul(pool.accWETHPerShare).div(1e12);
         user.RPrewardDebt = userPoint.mul(pool.accRPPerShare).div(1e12);
-
+        updateTotalVotePower(msg.sender, _pid);
+        updateVotePool(msg.sender);
         if(pending > 0) {
             safeWETHTransfer(msg.sender, pending);
         }
@@ -382,8 +428,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         }
     }
 
-    function updateTeam(address _team) external onlyOwner {
-        teamD = _team;
+    function updateLPstake(stakingpool _stake) external onlyOwner {
+        LPstake = _stake;
     } 
 
     function updateAllocator(address _allocator) external onlyOwner {
