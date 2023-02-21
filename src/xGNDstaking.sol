@@ -143,8 +143,10 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         return  amount1;
     }
 
-    function votePool(address _user, uint256 _pid) external {
+    function votePool(uint256 _pid) external {
+        address _user = msg.sender;
         require(voted[_user] == false);
+        require(getTotalVotePower(_user, 0) > 0, " no voting power");
         UserInfo storage user = userInfo[0][_user];
         LPstake.vote(_user, getTotalVotePower(_user, 0), _pid);
         user.votedID = _pid;
@@ -163,8 +165,8 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
 
     }
 
-    function unVotePool(address _user) external {
-
+    function unVotePool() external {
+        address _user = msg.sender;
         require(voted[_user], "not voted");
         UserInfo storage user = userInfo[0][_user];
         LPstake.redeemVote(_user, user.votedID);
@@ -436,5 +438,9 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
     function updateAllocator(address _allocator) external onlyOwner {
         Allocator = _allocator;
     } 
+
+    function updateReward(IERC20 _reward) external onlyOwner {
+        WETH = _reward;
+    }
 
 }

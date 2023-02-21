@@ -328,4 +328,9 @@ contract LPstaking is Ownable,ReentrancyGuard {
     function updateStakePool(address _pool) external onlyOwner {
         stakepool = _pool;
     } 
+
+    function updateMinters(token _GND, token _xGND) external onlyOwner {
+        xGND = _xGND;
+        GND = _GND;
+    }
 }
