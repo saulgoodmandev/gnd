@@ -20,12 +20,11 @@ interface staking {
 
 contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{ 
     token public GND;
-    staking public stakingContract;
-    staking public lpContract;
-    constructor(token _token, staking _staking) {
+    staking public divContract;
+    constructor(token _token) {
 
         GND = _token;
-        stakingContract = _staking;
+        _mint(msg.sender, 40000e18);
     }
 
     using SafeERC20 for IERC20;
@@ -76,7 +75,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
             VestPeriod: vestingPeriod
         }));
 
-        stakingContract.allocateVestRP(0, _amount.mul(100).div(200), msg.sender);
+        divContract.allocateVestRP(0, _amount.mul(100).div(200), msg.sender);
         userPositions[msg.sender] += 1; 
         _burn(msg.sender, _amount);
     }
@@ -91,7 +90,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
             VestPeriod: shortVestingPeriod
         }));
 
-        stakingContract.allocateVestRP(0, _amount.mul(100).div(400), msg.sender);
+        divContract.allocateVestRP(0, _amount.mul(100).div(400), msg.sender);
         _burn(msg.sender, _amount);
     }
 
@@ -109,8 +108,12 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
         vestPosition storage position = userInfo[msg.sender][id];
         uint256 claimAmount = position.totalVested;
         position.totalVested = 0;
-        stakingContract.deallocateVestRP(0, claimAmount.mul(100).div(200), msg.sender);
+        divContract.deallocateVestRP(0, claimAmount.mul(100).div(200), msg.sender);
         GND.mint(msg.sender, claimAmount);
+    }
+
+    function updateStakers(staking _div) external onlyOwner {
+        divContract = _div;
     }
 
 }

@@ -51,7 +51,7 @@ contract xGNDstaking is Ownable,ReentrancyGuard {
         uint256 accRPPerShare; //RPpershare
     }
 
-    IERC20 public WETH = IERC20(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    IERC20 public WETH = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
 
     // Dev address.
     stakingpool public LPstake;
