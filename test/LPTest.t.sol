@@ -5,6 +5,7 @@ pragma abicoder v2;
 import "forge-std/Test.sol";
 import "../src/UniswapV3LP.sol";
 import "../src/LPToken.sol";
+import "../src/Constant.sol";
 import "forge-std/console.sol";
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolEvents.sol";
@@ -38,14 +39,9 @@ contract LPTest is Test {
         uint256 amount1
     );
 
-    //https://app.uniswap.org/#/add/0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1/0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8/500?maxPrice=1.001153
-    address public constant nonfungiblePositionManager = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
-    address public constant univ3Factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
     address public constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
     address public constant USDC = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
-    address public constant UNISWAP_V3_POOL = 0xd37Af656Abf91c7f548FfFC0133175b5e4d3d5e6;
-    // address public constant gmdUSDC = 0x3DB4B7DA67dd5aF61Cb9b3C70501B1BdB24b2C22;
-    // univ3pool dai/usdc 500 fee: 0xd37Af656Abf91c7f548FfFC0133175b5e4d3d5e6
+
     UniswapV3LP public uniswapv3lp;
 
     uint256 amount0ToMint = 16027151935214508; //$ 0.0amount0ToMint
@@ -64,11 +60,12 @@ contract LPTest is Test {
     int24 tickUpper;
 
     function setUp() public {
+        // Set to one from alchemy pointing to arbitrum mainnet
         vm.createSelectFork(vm.envString("RPC_URL"), 61253298);
 
-        uniswapv3lp = new UniswapV3LP(nonfungiblePositionManager, univ3Factory);
+        uniswapv3lp = new UniswapV3LP(Constant.NON_FUNGIBLE_POS_MGR, Constant.UNISWAP_V3_FACTORY);
 
-        pool = IUniswapV3Pool(IUniswapV3Factory(univ3Factory).getPool(token0, token1, fee));
+        pool = IUniswapV3Pool(IUniswapV3Factory(Constant.UNISWAP_V3_FACTORY).getPool(token0, token1, fee));
         int24 tickSpacing = pool.tickSpacing();
         (, int24 currentTick,,,,,) = pool.slot0();
 
@@ -94,7 +91,7 @@ contract LPTest is Test {
             deadline: 1676494183 // User chose something waaaay out into the future
         });
 
-        lpToken = new LPToken("lpDAIUSD", "lpDAIUSD");
+        lpToken = new LPToken("lpName", "lpSymbol");
         lpToken.transferOwnership(address(uniswapv3lp)); //TODO need to do for deployment!
 
         //Setup balances.  foundry rocks this is insane
@@ -173,9 +170,9 @@ contract LPTest is Test {
         {
             //TODO validate ALL Transfer and approval events to tighten this test
 
-            vm.expectEmit(true, true, true, true, UNISWAP_V3_POOL);
+            vm.expectEmit(true, true, true, true, Constant.UNISWAP_V3_POOL);
             emit Burn(
-                address(nonfungiblePositionManager),
+                address(Constant.NON_FUNGIBLE_POS_MGR),
                 tickLower,
                 tickUpper,
                 decreaseLiquidity,

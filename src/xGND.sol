@@ -18,12 +18,12 @@ interface staking {
 }
 
 contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{ 
-    token public GND;
+    token public gnd;
     staking public stakingContract;
-    constructor(token _token, staking _staking) {
+    constructor(address _token, address _staking) {
 
-        GND = _token;
-        stakingContract = _staking;
+        gnd = token(_token);
+        stakingContract = staking(_staking);
     }
 
     using SafeERC20 for IERC20;
@@ -91,10 +91,10 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
 
     function lock(uint256 _amount) external nonReentrant {
 
-        require(GND.balanceOf(msg.sender) >= _amount, "GND balance too low");
+        require(gnd.balanceOf(msg.sender) >= _amount, "GND balance too low");
         uint256 amountOut = _amount;
         _mint(msg.sender, amountOut);
-        GND.burn(msg.sender, _amount);
+        gnd.burn(msg.sender, _amount);
     }
 
     function claim(uint256 id) external nonReentrant {
@@ -104,7 +104,7 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
         uint256 claimAmount = position.totalVested;
         position.totalVested = 0;
         stakingContract.deallocateVestRP(0, claimAmount.mul(100).div(200), msg.sender);
-        GND.mint(msg.sender, claimAmount);
+        gnd.mint(msg.sender, claimAmount);
     }
 
 }
