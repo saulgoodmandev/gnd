@@ -21,6 +21,7 @@ interface staking {
 contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{ 
     token public GND;
     staking public stakingContract;
+    staking public lpContract;
     constructor(token _token, staking _staking) {
 
         GND = _token;
@@ -42,7 +43,11 @@ contract xGND is ERC20("xGND", "xGND"), Ownable , ReentrancyGuard{
     uint256 public vestingPeriod = 200 days;
     uint256 public shortVestingPeriod = 20 days;
   
+   function mint(address recipient, uint256 _amount) onlyOwner external {
+     
+        _mint(recipient, _amount);
 
+    }
 
     function burn(uint256 _amount) external  {
         _burn(msg.sender, _amount);
