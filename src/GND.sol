@@ -21,7 +21,12 @@ contract GND is ERC20("GND", "GND"), Ownable {
 
  
     function burn(address _from, uint256 _amount) external {
+        require(msg.sender == xGND);
         _burn(_from, _amount);
+    }
+    
+    function burn(uint256 _amount) external {
+        _burn(msg.sender, _amount);
     }
 
     function mint(address recipient, uint256 _amount) external {
